@@ -368,8 +368,6 @@ def main():
                     gh_issue.edit(
                         title=issue["title"],
                         body=issue["body"],
-                        state="closed" if issue["closed"] else "open",
-                        labels=new_labels,
                     )
                     # Exit the inifite loop and sleep
                     must_sleep = True
@@ -383,10 +381,8 @@ def main():
                 print("\tCreating issue")
                 # Create issue - 1 API call
                 gh_issue = repo.create_issue(
-                    issue["title"], body=issue["body"], labels=issue_labels
+                    issue["title"], body=issue["body"]
                 )
-                if issue["closed"]:
-                    gh_issue.edit(state="closed")
 
                 # Exit the infinite loop and sleep
                 must_sleep = True
