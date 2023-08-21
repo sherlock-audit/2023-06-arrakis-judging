@@ -176,6 +176,15 @@ Escalations have been resolved successfully!
 Escalation status:
 - [syjcnss](https://github.com/sherlock-audit/2023-06-arrakis-judging/issues/26/#issuecomment-1636690026): accepted
 
+**Gevarist**
+
+We add another deviation check after minting part of rebalance on [SimpleManager.sol](https://github.com/ArrakisFinance/v2-manager-templates/blob/7608200e6e5cb3b27a5017fbca32cd855411b9e1/contracts/SimpleManager.sol#L197). 
+PR : https://github.com/ArrakisFinance/v2-manager-templates/pull/26
+
+**IAm0x52**
+
+Fix looks good. Deviation is checked before and after each rebalance to prevent pool becoming imbalanced between calls
+
 # Issue H-2: ArrakisV2Router#addLiquidityPermit2 will strand ETH 
 
 Source: https://github.com/sherlock-audit/2023-06-arrakis-judging/issues/183 
@@ -274,6 +283,14 @@ The finding result in lose of fund, recommend maintaining high severity.
 **0xpinky**
 
 @Gevarist stealing also one of the way for losing funds.. but thats not the only way.. any form of loss is loss only.
+
+**Gevarist**
+
+You can find a fix on [v2-periphery](https://github.com/ArrakisFinance/v2-periphery/pull/33) repository, isToken0Weth is now correctly set using [_isToken0Weth](https://github.com/ArrakisFinance/v2-periphery/blob/d7be12b5cdd5c698d34d56b21b2758117d00e61a/contracts/ArrakisV2Router.sol#L733).
+
+**IAm0x52**
+
+Fix looks good. `isToken0Weth` is now set correctly in all cases
 
 # Issue M-1: Then getAmountsForDelta function at Underlying.sol is implemented incorrectly 
 
@@ -471,6 +488,15 @@ Escalations have been resolved successfully!
 Escalation status:
 - [0xRobocop](https://github.com/sherlock-audit/2023-06-arrakis-judging/issues/8/#issuecomment-1636454444): accepted
 - [Jeiwan](https://github.com/sherlock-audit/2023-06-arrakis-judging/issues/8/#issuecomment-1636960962): accepted
+
+**Gevarist**
+
+We replace it with strict inequality [here](https://github.com/ArrakisFinance/v2-core/blob/840d46ea1765fa737824d47b400c639c6210fbad/contracts/libraries/Underlying.sol#L311).
+PR: https://github.com/ArrakisFinance/v2-core/pull/159
+
+**IAm0x52**
+
+Fix looks good. Now uses `<` instead of `<=`
 
 # Issue M-2: Lack of rebalance rate limiting allow operators to drain vaults 
 
@@ -743,6 +769,15 @@ Escalation status:
 - [IAm0x52](https://github.com/sherlock-audit/2023-06-arrakis-judging/issues/25/#issuecomment-1636896052): accepted
 - [Jeiwan](https://github.com/sherlock-audit/2023-06-arrakis-judging/issues/25/#issuecomment-1636964048): rejected
 
+**Gevarist**
+
+We add a cooldown period during which rebalance is not possible by operator [here](https://github.com/ArrakisFinance/v2-manager-templates/blob/7608200e6e5cb3b27a5017fbca32cd855411b9e1/contracts/SimpleManager.sol#L148). 
+PR : https://github.com/ArrakisFinance/v2-manager-templates/pull/26
+
+**IAm0x52**
+
+Fix looks good. Added a cooldown period to rebalances
+
 # Issue M-3: Min deposit protection during rebalancing can be bypassed if multiple fee tiers 
 
 Source: https://github.com/sherlock-audit/2023-06-arrakis-judging/issues/28 
@@ -797,6 +832,14 @@ Check deposited amounts in aggregate but grouped by fee tiers.
 **kassandraoftroy**
 
 For me this issue is a valid medium and not a duplicate of #164 since it is about rebalance() not addLiquidity() (so does not have the proper checks to sniff out manipulation when adding liquidity on multiple fee tiers simultaneously).
+
+**Gevarist**
+
+For this issue we have a fix [here](https://github.com/ArrakisFinance/v2-manager-templates/pull/27), we are letting the operator to fix a custom max slippage value (lower than the vault max slippage defines by owner during initialization of the management).
+
+**IAm0x52**
+
+Fix looks good. Operator can now specify a tighter slippage value
 
 # Issue M-4: outdated variable is not effective to check price feed timeliness 
 
@@ -900,6 +943,14 @@ recommend maintaining severity level
 
 Yes that can impact rebalance but should not result in fund loss.
 
+**Gevarist**
+
+You can find the fix [here](https://github.com/ArrakisFinance/v2-manager-templates/pull/26) on v2-manager-template repository, we now have two "outdated" variables to check individually if price feeds are outdated.
+
+**IAm0x52**
+
+Fix looks good. Oracle now has two separate outdated variables to accommodate feeds with different heartbeats 
+
 # Issue M-5: Update to `managerFeeBPS` applied to pending tokens yet to be claimed 
 
 Source: https://github.com/sherlock-audit/2023-06-arrakis-judging/issues/198 
@@ -942,4 +993,16 @@ Manual Review
 ## Recommendation
 Fees should be collected at the start of execution within the `setManagerFeeBPS()` function. This effectively checkpoints the fees properly, prior to updating the `managerFeeBPS` variable.
 
+
+
+
+## Discussion
+
+**Gevarist**
+
+We provide a fix on the [v2-core](https://github.com/ArrakisFinance/v2-core/pull/159) repository, we add an internal function [_collectFeesOnPools](https://github.com/ArrakisFinance/v2-core/blob/fix/sherlock/contracts/abstract/ArrakisV2Storage.sol#L331) that will be called when the manager will set managerFeeBPS
+
+**IAm0x52**
+
+Fix looks good. Fees are now updated and collected for manager anytime there is an update to manager or fee BPS
 
